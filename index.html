@@ -1,77 +1,52 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>쿠키런 킹덤 스킬 파우더 계산기</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cookie Run Kingdom 스킬 파우더 계산기</title>
 <style>
   body {
     font-family: "Noto Sans KR", sans-serif;
-    background: linear-gradient(180deg, #fff8f0, #ffe8d2);
-    margin: 0;
+    background: #f9fafb;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     padding: 30px;
-    text-align: center;
   }
-  h1 {
-    color: #ff7b00;
-  }
+  h1 { color: #333; }
   input, button {
     font-size: 16px;
-    padding: 8px 10px;
     margin: 5px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
+    padding: 8px 12px;
   }
   button {
-    background-color: #ff9800;
+    background-color: #4CAF50;
     color: white;
-    cursor: pointer;
     border: none;
+    border-radius: 6px;
+    cursor: pointer;
   }
   button:hover {
-    background-color: #ff7b00;
+    background-color: #45a049;
   }
-  table {
-    width: 90%;
-    max-width: 700px;
-    margin: 20px auto;
-    border-collapse: collapse;
-    background-color: white;
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-  }
-  th, td {
-    padding: 10px;
-    border-bottom: 1px solid #eee;
-  }
-  th {
-    background-color: #ffcc80;
-  }
-  tr:nth-child(even) {
-    background-color: #fff3e0;
-  }
-  .summary {
+  .result {
     margin-top: 25px;
-    font-size: 18px;
-  }
-  .powder-img {
-    width: 28px;
-    height: 28px;
-    vertical-align: middle;
-    margin-right: 6px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    padding: 20px;
+    width: 350px;
   }
 </style>
 </head>
 <body>
-<h1>🍪 쿠키런 킹덤 스킬 파우더 계산기</h1>
-<p>현재 레벨과 목표 레벨을 입력하면 필요한 파우더를 종류별로 계산해줍니다.</p>
+  <h1>🍪 쿠키런 킹덤 스킬 파우더 계산기</h1>
 
-<input type="number" id="current" placeholder="현재 레벨 (1~89)">
-<input type="number" id="target" placeholder="목표 레벨 (2~90)">
-<button onclick="calculate()">계산하기</button>
+  <label>현재 레벨: <input type="number" id="currentLevel" min="1" max="89" value="1"></label>
+  <label>목표 레벨: <input type="number" id="targetLevel" min="2" max="90" value="90"></label>
+  <button onclick="calculate()">계산하기</button>
 
-<div id="result"></div>
+  <div class="result" id="resultBox"></div>
 
 <script>
 const powderData = {
@@ -86,60 +61,40 @@ const powderData = {
   81: 45, 82: 45, 83: 45, 84: 45, 85: 45, 86: 50, 87: 50, 88: 50, 89: 50, 90: 50
 };
 
-const powderIcons = {
-  "보통 파우더": "https://static.wikia.nocookie.net/cookierunkingdom/images/2/23/Skill_Powder_Icon_1.png",
-  "희귀 파우더": "https://static.wikia.nocookie.net/cookierunkingdom/images/f/f7/Skill_Powder_Icon_2.png",
-  "에픽 파우더": "https://static.wikia.nocookie.net/cookierunkingdom/images/1/1c/Skill_Powder_Icon_3.png"
-};
-
 function getPowderType(level) {
-  if (level <= 20) return "보통 파우더";
-  else if (level <= 40) return "희귀 파우더";
+  if (level <= 30) return "보통 파우더";
+  else if (level <= 60) return "희귀 파우더";
   else return "에픽 파우더";
 }
 
 function calculate() {
-  const current = parseInt(document.getElementById("current").value);
-  const target = parseInt(document.getElementById("target").value);
-  const resultDiv = document.getElementById("result");
-  resultDiv.innerHTML = "";
+  const current = parseInt(document.getElementById('currentLevel').value);
+  const target = parseInt(document.getElementById('targetLevel').value);
+  const resultBox = document.getElementById('resultBox');
 
-  if (isNaN(current) || isNaN(target) || current < 1 || target > 90 || current >= target) {
-    resultDiv.innerHTML = "<p style='color:red;'>⚠️ 올바른 레벨 범위를 입력하세요 (1~89 → 2~90)</p>";
+  if (isNaN(current) || isNaN(target) || current >= target || current < 1 || target > 90) {
+    resultBox.innerHTML = "⚠️ 유효한 레벨 구간(1~89 → 2~90)을 입력하세요.";
     return;
   }
 
   let total = 0;
-  const typeCount = {"보통 파우더": 0, "희귀 파우더": 0, "에픽 파우더": 0};
-
-  let html = `<table>
-  <tr><th>레벨</th><th>필요 파우더</th><th>종류</th><th>누적</th></tr>`;
+  let typeCount = { "보통 파우더": 0, "희귀 파우더": 0, "에픽 파우더": 0 };
 
   for (let lv = current + 1; lv <= target; lv++) {
-    const need = powderData[lv];
+    const need = powderData[lv] || 0;
     const type = getPowderType(lv);
-    total += need;
     typeCount[type] += need;
-
-    html += `<tr>
-      <td>${lv}</td>
-      <td>${need}</td>
-      <td><img src="${powderIcons[type]}" class="powder-img">${type}</td>
-      <td>${total}</td>
-    </tr>`;
+    total += need;
   }
-  html += "</table>";
 
-  resultDiv.innerHTML = `
-    ${html}
-    <div class="summary">
-      <h3>📦 종류별 필요량</h3>
-      <p><img class="powder-img" src="${powderIcons["보통 파우더"]}"> 보통 파우더: ${typeCount["보통 파우더"]}개</p>
-      <p><img class="powder-img" src="${powderIcons["희귀 파우더"]}"> 희귀 파우더: ${typeCount["희귀 파우더"]}개</p>
-      <p><img class="powder-img" src="${powderIcons["에픽 파우더"]}"> 에픽 파우더: ${typeCount["에픽 파우더"]}개</p>
-      <hr>
-      <p><b>총 필요 파우더: ${total}개</b></p>
-    </div>
+  resultBox.innerHTML = `
+    <h3>📊 계산 결과</h3>
+    <p>레벨 ${current} → ${target}</p>
+    <p>보통 파우더: ${typeCount["보통 파우더"]}개</p>
+    <p>희귀 파우더: ${typeCount["희귀 파우더"]}개</p>
+    <p>에픽 파우더: ${typeCount["에픽 파우더"]}개</p>
+    <hr>
+    <p><b>총합: ${total}개</b></p>
   `;
 }
 </script>
