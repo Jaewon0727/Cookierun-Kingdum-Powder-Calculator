@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>쿠키런 킹덤 스킬 파우더 계산기</title>
+<style>
+  body {
+    font-family: "Noto Sans KR", sans-serif;
+    background: linear-gradient(180deg, #fff8f0, #ffe8d2);
+    margin: 0;
+    padding: 30px;
+    text-align: center;
+  }
+  h1 {
+    color: #ff7b00;
+  }
+  input, button {
+    font-size: 16px;
+    padding: 8px 10px;
+    margin: 5px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+  }
+  button {
+    background-color: #ff9800;
+    color: white;
+    cursor: pointer;
+    border: none;
+  }
+  button:hover {
+    background-color: #ff7b00;
+  }
+  table {
+    width: 90%;
+    max-width: 700px;
+    margin: 20px auto;
+    border-collapse: collapse;
+    background-color: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+  th, td {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+  }
+  th {
+    background-color: #ffcc80;
+  }
+  tr:nth-child(even) {
+    background-color: #fff3e0;
+  }
+  .summary {
+    margin-top: 25px;
+    font-size: 18px;
+  }
+  .powder-img {
+    width: 28px;
+    height: 28px;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+</style>
+</head>
+<body>
+<h1>🍪 쿠키런 킹덤 스킬 파우더 계산기</h1>
+<p>현재 레벨과 목표 레벨을 입력하면 필요한 파우더를 종류별로 계산해줍니다.</p>
+
+<input type="number" id="current" placeholder="현재 레벨 (1~89)">
+<input type="number" id="target" placeholder="목표 레벨 (2~90)">
+<button onclick="calculate()">계산하기</button>
+
+<div id="result"></div>
+
+<script>
+const powderData = {
+  2: 1, 3: 1, 4: 2, 5: 2, 6: 3, 7: 3, 8: 4, 9: 4, 10: 5, 11: 5,
+  12: 6, 13: 6, 14: 7, 15: 7, 16: 8, 17: 8, 18: 9, 19: 9, 20: 10,
+  21: 10, 22: 11, 23: 12, 24: 12, 25: 13, 26: 13, 27: 14, 28: 14, 29: 15, 30: 15,
+  31: 6, 32: 6, 33: 7, 34: 7, 35: 8, 36: 8, 37: 9, 38: 9, 39: 10, 40: 10,
+  41: 2, 42: 4, 43: 6, 44: 8, 45: 10, 46: 12, 47: 14, 48: 16, 49: 18, 50: 20,
+  51: 20, 52: 22, 53: 22, 54: 24, 55: 24, 56: 26, 57: 26, 58: 28, 59: 28, 60: 30,
+  61: 30, 62: 30, 63: 30, 64: 30, 65: 30, 66: 30, 67: 30, 68: 30, 69: 30, 70: 30,
+  71: 35, 72: 35, 73: 35, 74: 35, 75: 35, 76: 40, 77: 40, 78: 40, 79: 40, 80: 40,
+  81: 45, 82: 45, 83: 45, 84: 45, 85: 45, 86: 50, 87: 50, 88: 50, 89: 50, 90: 50
+};
+
+const powderIcons = {
+  "보통 파우더": "https://static.wikia.nocookie.net/cookierunkingdom/images/2/23/Skill_Powder_Icon_1.png",
+  "희귀 파우더": "https://static.wikia.nocookie.net/cookierunkingdom/images/f/f7/Skill_Powder_Icon_2.png",
+  "에픽 파우더": "https://static.wikia.nocookie.net/cookierunkingdom/images/1/1c/Skill_Powder_Icon_3.png"
+};
+
+function getPowderType(level) {
+  if (level <= 20) return "보통 파우더";
+  else if (level <= 40) return "희귀 파우더";
+  else return "에픽 파우더";
+}
+
+function calculate() {
+  const current = parseInt(document.getElementById("current").value);
+  const target = parseInt(document.getElementById("target").value);
+  const resultDiv = document.getElementById("result");
+  resultDiv.innerHTML = "";
+
+  if (isNaN(current) || isNaN(target) || current < 1 || target > 90 || current >= target) {
+    resultDiv.innerHTML = "<p style='color:red;'>⚠️ 올바른 레벨 범위를 입력하세요 (1~89 → 2~90)</p>";
+    return;
+  }
+
+  let total = 0;
+  const typeCount = {"보통 파우더": 0, "희귀 파우더": 0, "에픽 파우더": 0};
+
+  let html = `<table>
+  <tr><th>레벨</th><th>필요 파우더</th><th>종류</th><th>누적</th></tr>`;
+
+  for (let lv = current + 1; lv <= target; lv++) {
+    const need = powderData[lv];
+    const type = getPowderType(lv);
+    total += need;
+    typeCount[type] += need;
+
+    html += `<tr>
+      <td>${lv}</td>
+      <td>${need}</td>
+      <td><img src="${powderIcons[type]}" class="powder-img">${type}</td>
+      <td>${total}</td>
+    </tr>`;
+  }
+  html += "</table>";
+
+  resultDiv.innerHTML = `
+    ${html}
+    <div class="summary">
+      <h3>📦 종류별 필요량</h3>
+      <p><img class="powder-img" src="${powderIcons["보통 파우더"]}"> 보통 파우더: ${typeCount["보통 파우더"]}개</p>
+      <p><img class="powder-img" src="${powderIcons["희귀 파우더"]}"> 희귀 파우더: ${typeCount["희귀 파우더"]}개</p>
+      <p><img class="powder-img" src="${powderIcons["에픽 파우더"]}"> 에픽 파우더: ${typeCount["에픽 파우더"]}개</p>
+      <hr>
+      <p><b>총 필요 파우더: ${total}개</b></p>
+    </div>
+  `;
+}
+</script>
+</body>
+</html>
